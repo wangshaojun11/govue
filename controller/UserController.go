@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"uisee.com/govue/common"
+	"uisee.com/govue/dto"
 	"uisee.com/govue/model"
 	"uisee.com/govue/util"
 )
@@ -113,7 +114,7 @@ func Info(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"data": gin.H{
-			"user": user,
+			"user": dto.ToUserDto(user.(model.User)),
 		},
 	})
 }
