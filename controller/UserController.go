@@ -16,10 +16,23 @@ import (
 
 func Register(ctx *gin.Context) {
 	DB := common.GetDB()
-	// 获取参数
-	name := ctx.PostForm("name") // 创建的时候传3个参数，姓名，手机号，密码
-	telephone := ctx.PostForm("telephone")
-	password := ctx.PostForm("password")
+
+	// 方法1: 使用map
+	// var requestMap = make(map[string]string)
+	// json.NewDecoder(ctx.Request.Body).Decode(&requestMap)
+
+	// 方法2:使用结构体承接参数
+	// var requestUser = model.User{}
+	// json.NewDecoder(ctx.Request.Body).Decode(&requestUser)
+
+	// 方法3:使用bind方法
+	var requestUser = model.User{}
+	ctx.Bind(&requestUser)
+
+	// 获取参数  创建的时候传3个参数，姓名，手机号，密码
+	name := requestUser.Name
+	telephone := requestUser.Telephone
+	password := requestUser.Password
 
 	// 数据验证
 	if len(telephone) != 11 { // 验证手机号是否为11位
@@ -53,9 +66,17 @@ func Register(ctx *gin.Context) {
 		Password:  string(hasedPassword),
 	}
 	DB.Create(&newUser)
+	// 发放token
+	token, err := common.ReleaseToken(newUser)
+	if err != nil {
+		response.Response(ctx, http.StatusInternalServerError, 500, nil, "系统错误")
+		log.Printf("token generate err: %v", err)
+		return
+	}
 
 	// 返回结果
-	response.Success(ctx, nil, "注册成功")
+	response.Success(ctx, gin.H{"token": token}, "注册成功")
+
 }
 
 // 用户登录
